@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Expense Tracker</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Expense Tracker</h1>
+
+    <!-- SUMMARY -->
+
+    <div class="summary">
+
+        <div class="card">
+            <h3>Tổng thu</h3>
+            <p id="totalIncome">
+                0 VNĐ
+            </p>
+        </div>
+
+        <div class="card">
+            <h3>Tổng chi</h3>
+            <p id="totalExpense">
+                0 VNĐ
+            </p>
+        </div>
+
+        <div class="card">
+            <h3>Số dư</h3>
+            <p id="balance">
+                0 VNĐ
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- FORM -->
+
+    <div class="form-box">
+
+        <h2>Thêm giao dịch</h2>
+
+        <form id="expenseForm">
+
+            <input
+                id="title"
+                type="text"
+                placeholder="Tên giao dịch"
+                required
+            >
+
+            <input
+                id="amount"
+                type="number"
+                placeholder="Số tiền"
+                required
+            >
+
+            <select id="type">
+
+                <option value="expense">
+                    Chi
+                </option>
+
+                <option value="income">
+                    Thu
+                </option>
+
+            </select>
+
+            <select id="category">
+
+                <option value="food">
+                    Ăn uống
+                </option>
+
+                <option value="transport">
+                    Đi lại
+                </option>
+
+                <option value="shopping">
+                    Mua sắm
+                </option>
+
+                <option value="education">
+                    Học tập
+                </option>
+
+                <option value="salary">
+                    Lương
+                </option>
+
+                <option value="other">
+                    Khác
+                </option>
+
+            </select>
+
+            <input
+                id="date"
+                type="date"
+                required
+            >
+
+            <button type="submit">
+                Thêm giao dịch
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <!-- LIST -->
+
+    <div class="list-box">
+
+        <h2>Danh sách giao dịch</h2>
+
+        <div id="expenseList"></div>
+
+    </div>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+
+</html>
