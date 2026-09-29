@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Đăng ký - Expense Tracker</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="auth-container">
+
+        <div class="auth-box">
+
+            <h1>Đăng ký</h1>
+
+            <form id="registerForm">
+
+                <input
+                    type="text"
+                    id="name"
+                    placeholder="Họ và tên"
+                    required
+                >
+
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="Email"
+                    required
+                >
+
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Mật khẩu"
+                    required
+                >
+
+                <input
+                    type="password"
+                    id="confirmPassword"
+                    placeholder="Nhập lại mật khẩu"
+                    required
+                >
+
+                <button type="submit">
+                    Đăng ký
+                </button>
+
+            </form>
+
+            <p id="message"></p>
+
+            <p>
+                Đã có tài khoản?
+                <a href="login.html">Đăng nhập</a>
+            </p>
+
+        </div>
+
+    </div>
+
+    <script src="auth.js"></script>
+
+</body>
+
+</html>

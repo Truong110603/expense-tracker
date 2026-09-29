@@ -1,147 +1,375 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Expense Tracker</title>
 
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
 
-<div class="container">
+<div class="app">
 
-    <h1>Expense Tracker</h1>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
 
-    <!-- SUMMARY -->
-
-    <div class="summary">
-
-        <div class="card">
-            <h3>Tổng thu</h3>
-            <p id="totalIncome">
-                0 VNĐ
-            </p>
+        <div class="logo">
+            <div class="logo-icon">₿</div>
+            <span>Expense<span class="logo-highlight">X</span></span>
         </div>
 
-        <div class="card">
-            <h3>Tổng chi</h3>
-            <p id="totalExpense">
-                0 VNĐ
-            </p>
-        </div>
+        <nav>
 
-        <div class="card">
-            <h3>Số dư</h3>
-            <p id="balance">
-                0 VNĐ
-            </p>
-        </div>
+            <a href="#" class="nav-item active">
+                <span>⌂</span>
+                Dashboard
+            </a>
 
-    </div>
+            <a href="#expenseForm" class="nav-item">
+                <span>＋</span>
+                Add Transaction
+            </a>
 
+            <a href="#expenseList" class="nav-item">
+                <span>▤</span>
+                Transactions
+            </a>
 
-    <!-- FORM -->
+        </nav>
 
-    <div class="form-box">
+        <div class="sidebar-bottom">
 
-        <h2>Thêm giao dịch</h2>
+            <div class="security-box">
+                <span>🔒</span>
+                <div>
+                    <strong>Secure Wallet</strong>
+                    <small>Your data is protected</small>
+                </div>
+            </div>
 
-        <form id="expenseForm">
-
-            <input
-                id="title"
-                type="text"
-                placeholder="Tên giao dịch"
-                required
-            >
-
-            <input
-                id="amount"
-                type="number"
-                placeholder="Số tiền"
-                required
-            >
-
-            <select id="type">
-
-                <option value="expense">
-                    Chi
-                </option>
-
-                <option value="income">
-                    Thu
-                </option>
-
-            </select>
-
-            <select id="category">
-
-                <option value="food">
-                    Ăn uống
-                </option>
-
-                <option value="transport">
-                    Đi lại
-                </option>
-
-                <option value="shopping">
-                    Mua sắm
-                </option>
-
-                <option value="education">
-                    Học tập
-                </option>
-
-                <option value="salary">
-                    Lương
-                </option>
-
-                <option value="other">
-                    Khác
-                </option>
-
-            </select>
-
-            <input
-                id="date"
-                type="date"
-                required
-            >
-
-            <button type="submit">
-                Thêm giao dịch
+            <button id="logoutBtn" class="logout-btn">
+                ↪ Đăng xuất
             </button>
 
-        </form>
+        </div>
 
-    </div>
+    </aside>
 
 
-    <!-- LIST -->
+    <!-- MAIN -->
+    <main class="main">
 
-    <div class="list-box">
+        <!-- TOP BAR -->
+        <header class="topbar">
 
-        <h2>Danh sách giao dịch</h2>
+            <div>
+                <p class="welcome">Welcome back,</p>
+                <h2 id="userName">User</h2>
+            </div>
 
-        <div id="expenseList"></div>
+            <div class="top-actions">
 
-    </div>
+                <div class="status">
+                    <span class="status-dot"></span>
+                    Connected
+                </div>
+
+                <div class="avatar">
+                    <span id="avatarLetter">U</span>
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- DASHBOARD -->
+        <section class="dashboard">
+
+            <!-- BALANCE CARD -->
+            <div class="balance-card">
+
+                <div class="balance-top">
+
+                    <div>
+                        <span class="label">TOTAL BALANCE</span>
+
+                        <h1 id="balance">
+                            0 VNĐ
+                        </h1>
+
+                        <p class="balance-change">
+                            <span>↑</span>
+                            Your current balance
+                        </p>
+                    </div>
+
+                    <div class="wallet-icon">
+                        ◈
+                    </div>
+
+                </div>
+
+                <div class="balance-line"></div>
+
+                <div class="wallet-info">
+
+                    <div>
+                        <span>Wallet</span>
+                        <strong>Personal Wallet</strong>
+                    </div>
+
+                    <div>
+                        <span>Status</span>
+                        <strong class="online">● Active</strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- STAT CARDS -->
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+
+                    <div class="stat-icon income-icon">
+                        ↑
+                    </div>
+
+                    <div>
+                        <span>TOTAL INCOME</span>
+
+                        <h3 id="totalIncome">
+                            0 VNĐ
+                        </h3>
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon expense-icon">
+                        ↓
+                    </div>
+
+                    <div>
+                        <span>TOTAL EXPENSE</span>
+
+                        <h3 id="totalExpense">
+                            0 VNĐ
+                        </h3>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- CHART + QUICK ACTION -->
+
+            <div class="content-grid">
+
+                <!-- CHART -->
+                <div class="panel chart-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <span class="panel-label">ANALYTICS</span>
+                            <h2>Spending Overview</h2>
+                        </div>
+
+                        <button class="period-btn">
+                            All time ▾
+                        </button>
+
+                    </div>
+
+                    <div class="chart-wrapper">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+
+                </div>
+
+
+                <!-- QUICK ADD -->
+                <div class="panel quick-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <span class="panel-label">QUICK ACTION</span>
+                            <h2>Add Transaction</h2>
+                        </div>
+
+                        <div class="plus-circle">
+                            +
+                        </div>
+
+                    </div>
+
+
+                    <form id="expenseForm">
+
+                        <div class="input-group">
+
+                            <label>Transaction</label>
+
+                            <input
+                                id="title"
+                                type="text"
+                                placeholder="e.g. Coffee"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="input-group">
+
+                            <label>Amount</label>
+
+                            <input
+                                id="amount"
+                                type="number"
+                                placeholder="0"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="two-columns">
+
+                            <div class="input-group">
+
+                                <label>Type</label>
+
+                                <select id="type">
+
+                                    <option value="expense">
+                                        Chi
+                                    </option>
+
+                                    <option value="income">
+                                        Thu
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <div class="input-group">
+
+                                <label>Category</label>
+
+                                <select id="category">
+
+                                    <option value="food">
+                                        Ăn uống
+                                    </option>
+
+                                    <option value="transport">
+                                        Đi lại
+                                    </option>
+
+                                    <option value="shopping">
+                                        Mua sắm
+                                    </option>
+
+                                    <option value="education">
+                                        Học tập
+                                    </option>
+
+                                    <option value="salary">
+                                        Lương
+                                    </option>
+
+                                    <option value="other">
+                                        Khác
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="input-group">
+
+                            <label>Date</label>
+
+                            <input
+                                id="date"
+                                type="date"
+                                required
+                            >
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="add-btn"
+                        >
+                            + Add Transaction
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+
+            <!-- TRANSACTIONS -->
+
+            <div class="panel transactions-panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <span class="panel-label">WALLET ACTIVITY</span>
+                        <h2>Recent Transactions</h2>
+                    </div>
+
+                    <span class="transaction-count">
+                        Latest activity
+                    </span>
+
+                </div>
+
+
+                <div
+                    id="expenseList"
+                    class="transaction-list"
+                ></div>
+
+            </div>
+
+        </section>
+
+    </main>
 
 </div>
+
 
 <script src="app.js"></script>
 
 </body>
 
 </html>
+```

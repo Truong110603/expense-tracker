@@ -1,232 +1,843 @@
-const API_URL =
-    "http://localhost:3000/api/expenses";
+const API_URL = "/api/expenses";
 
-const form =
-    document.getElementById("expenseForm");
+const token = localStorage.getItem("token");
 
-const expenseList =
-    document.getElementById("expenseList");
+// ========================================
+// KIỂM TRA ĐĂNG NHẬP
+// ========================================
 
-
-// =============================
-// Lấy dữ liệu
-// =============================
-
-async function loadExpenses() {
-
-    const response =
-        await fetch(API_URL);
-
-    const expenses =
-        await response.json();
-
-    displayExpenses(expenses);
-
-    calculateSummary(expenses);
+if (!token) {
+    window.location.href = "/login.html";
 }
 
 
-// =============================
-// Hiển thị danh sách
-// =============================
+// ========================================
+// LẤY ELEMENT
+// ========================================
+
+const form = document.getElementById("expenseForm");
+const expenseList = document.getElementById("expenseList");
+
+
+// ========================================
+// THÔNG TIN USER
+// ========================================
+
+const user = JSON.parse(
+    localStorage.getItem("user") || "{}"
+);
+
+const userName = document.getElementById("userName");
+const avatarLetter = document.getElementById("avatarLetter");
+
+if (userName) {
+    userName.textContent = user.name || "User";
+}
+
+if (avatarLetter) {
+    avatarLetter.textContent =
+        (user.name || "U").charAt(0).toUpperCase();
+}
+
+
+// ========================================
+// FORMAT TIỀN
+// ========================================
+
+function formatMoney(amount) {
+    return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND"
+    }).format(amount);
+}
+
+
+// ========================================
+// FORMAT NGÀY
+// ========================================
+
+function formatDate(date) {
+    return new Date(date).toLocaleDateString("vi-VN");
+}
+
+
+// ========================================
+// CATEGORY
+// ========================================
+
+const categoryNames = {
+    food: "Ăn uống",
+    transport: "Đi lại",
+    shopping: "Mua sắm",
+    education: "Học tập",
+    salary: "Lương",
+    other: "Khác"
+};
+
+
+// ========================================
+// CATEGORY ICON
+// ========================================
+
+const categoryIcons = {
+    food: "🍔",
+    transport: "🚗",
+    shopping: "🛍️",
+    education: "📚",
+    salary: "💰",
+    other: "📦"
+};
+
+
+// ========================================
+// LẤY DANH SÁCH GIAO DỊCH
+// ========================================
+
+async function loadExpenses() {
+
+    try {
+
+        const response = await fetch(API_URL, {
+            method: "GET",
+
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Không thể lấy danh sách giao dịch"
+            );
+
+        }
+
+
+        const expenses = await response.json();
+
+        displayExpenses(expenses);
+
+
+    } catch (error) {
+
+        console.error(
+            "Load expenses error:",
+            error
+        );
+
+    }
+}
+
+
+// ========================================
+// HIỂN THỊ GIAO DỊCH
+// ========================================
 
 function displayExpenses(expenses) {
 
-    expenseList.innerHTML = "";
+    if (!expenseList) {
+        return;
+    }
 
-    expenses.forEach(expense => {
 
-        const div =
-            document.createElement("div");
+    if (expenses.length === 0) {
 
-        div.className =
-            "transaction";
+        expenseList.innerHTML = `
+            <div class="empty-state">
+                <div style="font-size:35px;">
+                    💸
+                </div>
 
-        const sign =
-            expense.type === "income"
+                <p>
+                    Chưa có giao dịch nào
+                </p>
+
+                <small>
+                    Hãy thêm giao dịch đầu tiên của bạn
+                </small>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    expenseList.innerHTML = expenses.map(expense => {
+
+        const isIncome =
+            expense.type === "income";
+
+
+        const amountClass =
+            isIncome
+                ? "income"
+                : "expense";
+
+
+        const amountPrefix =
+            isIncome
                 ? "+"
                 : "-";
 
-        div.innerHTML = `
-            <div>
-                <strong>
-                    ${expense.title}
-                </strong>
 
-                <br>
+        const category =
+            categoryNames[expense.category]
+            || expense.category;
 
-                ${expense.category}
-                -
-                ${new Date(
-                    expense.date
-                ).toLocaleDateString("vi-VN")}
-            </div>
 
-            <div>
+        const icon =
+            categoryIcons[expense.category]
+            || "💳";
 
-                <strong class="${
-                    expense.type
-                }">
 
-                    ${sign}
-                    ${formatMoney(
-                        expense.amount
-                    )}
+        return `
+            <div class="transaction">
 
-                </strong>
+                <div class="transaction-icon">
+                    ${icon}
+                </div>
+
+
+                <div class="transaction-info">
+
+                    <strong>
+                        ${escapeHtml(expense.title)}
+                    </strong>
+
+                    <small>
+                        ${category}
+                        •
+                        ${formatDate(expense.date)}
+                    </small>
+
+                </div>
+
+
+                <div class="transaction-amount">
+
+                    <strong class="${amountClass}">
+                        ${amountPrefix}
+                        ${formatMoney(expense.amount)}
+                    </strong>
+
+                    <small>
+                        ${isIncome
+                            ? "Income"
+                            : "Expense"}
+                    </small>
+
+                </div>
+
 
                 <button
                     class="delete-btn"
                     onclick="deleteExpense('${expense._id}')"
+                    title="Xóa giao dịch"
                 >
-                    Xóa
+                    ✕
                 </button>
 
             </div>
         `;
 
-        expenseList.appendChild(div);
-    });
+    }).join("");
 }
 
 
-// =============================
-// Thêm giao dịch
-// =============================
+// ========================================
+// SUMMARY
+// ========================================
 
-form.addEventListener(
-    "submit",
-    async function(event) {
+async function loadSummary() {
 
-        event.preventDefault();
+    try {
 
-        const data = {
+        const response = await fetch(
+            "/api/expenses/summary",
+            {
+                method: "GET",
 
-            title:
-                document.getElementById(
-                    "title"
-                ).value,
-
-            amount:
-                Number(
-                    document.getElementById(
-                        "amount"
-                    ).value
-                ),
-
-            type:
-                document.getElementById(
-                    "type"
-                ).value,
-
-            category:
-                document.getElementById(
-                    "category"
-                ).value,
-
-            date:
-                document.getElementById(
-                    "date"
-                ).value
-        };
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            }
+        );
 
 
-        await fetch(API_URL, {
+        if (!response.ok) {
 
-            method: "POST",
+            throw new Error(
+                "Không thể lấy thống kê"
+            );
 
-            headers: {
-                "Content-Type":
-                    "application/json"
-            },
-
-            body: JSON.stringify(data)
-        });
+        }
 
 
-        form.reset();
+        const data = await response.json();
 
-        loadExpenses();
+
+        const totalIncome =
+            document.getElementById("totalIncome");
+
+        const totalExpense =
+            document.getElementById("totalExpense");
+
+        const balance =
+            document.getElementById("balance");
+
+
+        if (totalIncome) {
+
+            totalIncome.textContent =
+                formatMoney(data.totalIncome);
+
+        }
+
+
+        if (totalExpense) {
+
+            totalExpense.textContent =
+                formatMoney(data.totalExpense);
+
+        }
+
+
+        if (balance) {
+
+            balance.textContent =
+                formatMoney(data.balance);
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Summary error:",
+            error
+        );
+
     }
-);
+}
 
 
-// =============================
-// Xóa
-// =============================
+// ========================================
+// THÊM GIAO DỊCH
+// ========================================
 
-async function deleteExpense(id) {
+if (form) {
 
-    await fetch(
-        `${API_URL}/${id}`,
-        {
-            method: "DELETE"
+    form.addEventListener(
+        "submit",
+        async function (event) {
+
+            event.preventDefault();
+
+
+            const title =
+                document.getElementById("title")
+                    .value
+                    .trim();
+
+
+            const amount =
+                Number(
+                    document.getElementById("amount")
+                        .value
+                );
+
+
+            const type =
+                document.getElementById("type")
+                    .value;
+
+
+            const category =
+                document.getElementById("category")
+                    .value;
+
+
+            const date =
+                document.getElementById("date")
+                    .value;
+
+
+            if (!title) {
+
+                alert(
+                    "Vui lòng nhập tên giao dịch"
+                );
+
+                return;
+            }
+
+
+            if (!amount || amount <= 0) {
+
+                alert(
+                    "Vui lòng nhập số tiền hợp lệ"
+                );
+
+                return;
+            }
+
+
+            if (!date) {
+
+                alert(
+                    "Vui lòng chọn ngày"
+                );
+
+                return;
+            }
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        API_URL,
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json",
+
+                                "Authorization":
+                                    `Bearer ${token}`
+                            },
+
+                            body: JSON.stringify({
+                                title,
+                                amount,
+                                type,
+                                category,
+                                date
+                            })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.message ||
+                        "Không thể thêm giao dịch"
+                    );
+
+                }
+
+
+                console.log(
+                    "Add transaction:",
+                    data
+                );
+
+
+                // Reset form
+                form.reset();
+
+
+                // Đặt lại ngày
+                setToday();
+
+
+                // Cập nhật dữ liệu
+                await loadExpenses();
+
+                await loadSummary();
+
+                await loadCategoryChart();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Add transaction error:",
+                    error
+                );
+
+                alert(
+                    "Lỗi: " + error.message
+                );
+
+            }
+
         }
     );
 
-    loadExpenses();
 }
 
 
-// =============================
-// Tính tổng
-// =============================
+// ========================================
+// XÓA GIAO DỊCH
+// ========================================
 
-function calculateSummary(expenses) {
+async function deleteExpense(id) {
 
-    let income = 0;
-    let expense = 0;
+    const confirmed =
+        confirm(
+            "Bạn có chắc muốn xóa giao dịch này?"
+        );
 
-    expenses.forEach(item => {
 
-        if (item.type === "income") {
+    if (!confirmed) {
+        return;
+    }
 
-            income += item.amount;
 
-        } else {
+    try {
 
-            expense += item.amount;
+        const response =
+            await fetch(
+                `${API_URL}/${id}`,
+                {
+                    method: "DELETE",
+
+                    headers: {
+                        "Authorization":
+                            `Bearer ${token}`
+                    }
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.message ||
+                "Không thể xóa giao dịch"
+            );
 
         }
-    });
-
-    const balance =
-        income - expense;
 
 
-    document.getElementById(
-        "totalIncome"
-    ).textContent =
-        formatMoney(income) + " VNĐ";
+        await loadExpenses();
+
+        await loadSummary();
+
+        await loadCategoryChart();
 
 
-    document.getElementById(
-        "totalExpense"
-    ).textContent =
-        formatMoney(expense) + " VNĐ";
+    } catch (error) {
 
+        console.error(
+            "Delete expense error:",
+            error
+        );
 
-    document.getElementById(
-        "balance"
-    ).textContent =
-        formatMoney(balance) + " VNĐ";
+        alert(
+            "Lỗi: " + error.message
+        );
+
+    }
 }
 
 
-// =============================
-// Format tiền
-// =============================
+// ========================================
+// BIỂU ĐỒ
+// ========================================
 
-function formatMoney(amount) {
+let categoryChart = null;
 
-    return new Intl.NumberFormat(
-        "vi-VN"
-    ).format(amount);
+
+async function loadCategoryChart() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/expenses/summary/category",
+                {
+                    method: "GET",
+
+                    headers: {
+                        "Authorization":
+                            `Bearer ${token}`
+                    }
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Không thể lấy dữ liệu biểu đồ"
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        const canvas =
+            document.getElementById(
+                "categoryChart"
+            );
+
+
+        if (!canvas) {
+            return;
+        }
+
+
+        const labels =
+            data.map(
+                item => item.category
+            );
+
+
+        const values =
+            data.map(
+                item => item.total
+            );
+
+
+        const displayLabels =
+            labels.map(
+                category =>
+                    categoryNames[category]
+                    || category
+            );
+
+
+        const ctx =
+            canvas.getContext("2d");
+
+
+        // Xóa chart cũ
+        if (categoryChart) {
+
+            categoryChart.destroy();
+
+        }
+
+
+        categoryChart =
+            new Chart(
+                ctx,
+                {
+                    type: "doughnut",
+
+                    data: {
+
+                        labels:
+                            displayLabels,
+
+                        datasets: [
+                            {
+                                label:
+                                    "Chi tiêu",
+
+                                data:
+                                    values,
+
+                                borderWidth:
+                                    0,
+
+                                hoverOffset:
+                                    8
+                            }
+                        ]
+                    },
+
+
+                    options: {
+
+                        responsive:
+                            true,
+
+                        maintainAspectRatio:
+                            false,
+
+                        cutout:
+                            "68%",
+
+
+                        plugins: {
+
+                            legend: {
+
+                                position:
+                                    "bottom",
+
+                                labels: {
+
+                                    color:
+                                        "#858a9c",
+
+                                    padding:
+                                        18,
+
+                                    usePointStyle:
+                                        true,
+
+                                    font: {
+                                        size:
+                                            11
+                                    }
+                                }
+                            },
+
+
+                            tooltip: {
+
+                                callbacks: {
+
+                                    label:
+                                        function (
+                                            context
+                                        ) {
+
+                                            return (
+                                                context.label
+                                                + ": "
+                                                + formatMoney(
+                                                    context.raw
+                                                )
+                                            );
+
+                                        }
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+
+
+    } catch (error) {
+
+        console.error(
+            "Category chart error:",
+            error
+        );
+
+    }
 }
 
 
-// =============================
-// Chạy khi mở trang
-// =============================
+// ========================================
+// ESCAPE HTML
+// ========================================
+
+function escapeHtml(text) {
+
+    const div =
+        document.createElement("div");
+
+
+    div.textContent =
+        text;
+
+
+    return div.innerHTML;
+}
+
+
+// ========================================
+// LOGOUT
+// ========================================
+
+const logoutBtn =
+    document.getElementById(
+        "logoutBtn"
+    );
+
+
+if (logoutBtn) {
+
+    logoutBtn.addEventListener(
+        "click",
+        function () {
+
+            localStorage.removeItem(
+                "token"
+            );
+
+            localStorage.removeItem(
+                "user"
+            );
+
+            window.location.href =
+                "/login.html";
+
+        }
+    );
+
+}
+
+
+// ========================================
+// SET NGÀY HIỆN TẠI
+// ========================================
+
+function setToday() {
+
+    const dateInput =
+        document.getElementById(
+            "date"
+        );
+
+
+    if (!dateInput) {
+        return;
+    }
+
+
+    const today =
+        new Date();
+
+
+    const year =
+        today.getFullYear();
+
+
+    const month =
+        String(
+            today.getMonth() + 1
+        ).padStart(
+            2,
+            "0"
+        );
+
+
+    const day =
+        String(
+            today.getDate()
+        ).padStart(
+            2,
+            "0"
+        );
+
+
+    dateInput.value =
+        `${year}-${month}-${day}`;
+}
+
+
+// ========================================
+// KHỞI ĐỘNG
+// ========================================
+
+setToday();
 
 loadExpenses();
+
+loadSummary();
+
+loadCategoryChart();
+
